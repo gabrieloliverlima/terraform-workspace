@@ -27,7 +27,7 @@ Antes de iniciar, certifique-se de ter os seguintes itens configurados:
 Após criar o cluster, precisamos importar seu estado para o Terraform.
 
 ### 2.1 Criando os arquivos Terraform
-No diretório do projeto, crie os seguintes arquivos:
+No diretório do projeto, crie os seguintes arquivos abaixo, o bloco Data é necessário para baixar a configuração do cluster que ja está criado no Provider.
 
 #### **`main.tf`**
 ```hcl
@@ -92,10 +92,6 @@ resource "digitalocean_kubernetes_cluster" "k8s" {
 
 ```
 
-variable "do_token" {
-  type = string
-}
-
 #### **`variaveis.tf`**
 ```hcl
 variable "do_token" {
@@ -136,11 +132,12 @@ variable "node_count" {
 Confirmado que a configuração do Cluster é a mesma da configuração do main.tf, uso o comando para importar o resource
 
 ```sh
-terraform import digitalocean_kubernetes_cluster.k8s 757ab546-c9c4-420b-xxxxxxxxxx
+terraform import digitalocean_kubernetes_cluster.k8s id_do_resource
 ```
-Para listar os resources
+Para saber o ID
 ```sh
 terraform state list
+terraform state show digitalocean_kubernetes_cluster.k8s
 ```
 Se tudo der certo, o Terraform irá associar o cluster existente ao código Terraform.
 
@@ -165,16 +162,27 @@ Crie dois arquivos para os diferentes ambientes:
 
 #### **`k8s_prod.tfvars`**
 ```hcl
-k8s_name = "k8s-prod"
+k8s_name = "k8s"
+k8s_region = "nyc1"
+k8s_version = "1.32.2-do.0"
+worker_pool = "pool-k8s"
+k8s_worker_size = "s-2vcpu-2gb"
+node_count = 2
+
 ```
 
 #### **`k8s_homolog.tfvars`**
 ```hcl
-k8s_name = "k8s-homolog"
+k8s_name = "k8s"
+k8s_region = "nyc1"
+k8s_version = "1.32.2-do.0"
+worker_pool = "pool-k8s"
+k8s_worker_size = "s-1vcpu-2gb"
+node_count = 1
 ```
 
 ### 3.3 Aplicando as Configurações
-Para aplicar a configuração no ambiente de produção:
+Trocando de ambiente (terraform workspace select prod) já posso realizar o apply
 ```sh
 terraform apply -var-file=k8s_prod.tfvars
 ```
@@ -185,15 +193,3 @@ terraform apply -var-file=k8s_homolog.tfvars
 
 ## Conclusão
 Agora temos um cluster Kubernetes gerenciado pelo Terraform com separação de ambientes via Workspaces. Isso garante maior controle, escalabilidade e organização na infraestrutura.
-
----
-
-### 📌 Possíveis Melhorias
-- Adicionar módulos Terraform para reutilização de código.
-- Integrar com um CI/CD para automação do deploy dos clusters.
-- Implementar variáveis sensíveis usando **Terraform Cloud** ou **Vault**.
-
----
-
-Este repositório foi criado para facilitar a gestão de clusters Kubernetes na DigitalOcean com Terraform. Contribuições são bem-vindas! 🚀
-

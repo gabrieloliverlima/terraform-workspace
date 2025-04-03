@@ -5,7 +5,7 @@ variable "do_token" {
 
 variable "k8s_name" {
   type = string
-  default = "k8s-prod"
+  default = "k8s"
 }
 
 variable "k8s_region" {
