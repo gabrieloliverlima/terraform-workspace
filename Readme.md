@@ -100,7 +100,7 @@ variable "do_token" {
 
 variable "k8s_name" {
   type = string
-  default = "k8s-prod"
+  default = "k8s"
 }
 
 variable "k8s_region" {
@@ -125,7 +125,7 @@ variable "k8s_worker_size" {
 
 variable "node_count" {
   type = number
-  default = 1
+  default = 3
 }
 
 ```
@@ -136,8 +136,8 @@ terraform import digitalocean_kubernetes_cluster.k8s id_do_resource
 ```
 Para saber o ID
 ```sh
-terraform state list
-terraform state show digitalocean_kubernetes_cluster.k8s
+terraform state list # Para listar os resources
+terraform state show digitalocean_kubernetes_cluster.k8s # Para detalhar a config dos resource
 ```
 Se tudo der certo, o Terraform irá associar o cluster existente ao código Terraform.
 
