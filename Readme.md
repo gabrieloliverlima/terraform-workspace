@@ -44,10 +44,57 @@ provider "digitalocean" {
   token = var.do_token
 }
 
-data "digitalocean_kubernetes_cluster" "k8s_prod" {
-  name = var.k8s_name
+data "digitalocean_kubernetes_cluster" "k8s" {
+  name = "k8s-prod"
 }
 ```
+
+
+
+#### **`variaveis.tf`**
+```hcl
+variable "do_token" {
+  type = string
+}
+
+```
+E aplico usando o Terraform Apply
+
+### 2.2 Importando o Cluster
+Agora posso remover o bloco Data Resource e configurar o bloco de Resource do cluster conforme a documentaçao. 
+
+#### **`main.tf`**
+```hcl
+terraform {
+  required_providers {
+    digitalocean = {
+      source  = "digitalocean/digitalocean"
+      version = "2.50.0"
+    }
+  }
+}
+
+provider "digitalocean" {
+  token = var.do_token
+}
+
+resource "digitalocean_kubernetes_cluster" "k8s" {
+  name   = "${var.k8s_name}-${terraform.workspace}"
+  region = var.k8s_region
+  version = var.k8s_version
+
+  node_pool {
+    name       = var.worker_pool
+    size       = var.k8s_worker_size
+    node_count = var.node_count
+  }
+}
+
+```
+
+variable "do_token" {
+  type = string
+}
 
 #### **`variaveis.tf`**
 ```hcl
@@ -56,18 +103,45 @@ variable "do_token" {
 }
 
 variable "k8s_name" {
-  type    = string
+  type = string
   default = "k8s-prod"
 }
-```
 
-### 2.2 Importando o Cluster
-Para importar o cluster criado manualmente, obtenha o ID do cluster na interface da DigitalOcean e execute o comando:
+variable "k8s_region" {
+  type = string
+  default = "nyc1"
+}
+
+variable "k8s_version" {
+  type = string
+  default = "1.32.2-do.0"
+}
+
+variable "worker_pool" {
+  type = string
+  default = "pool-k8s"
+}
+
+variable "k8s_worker_size" {
+  type = string
+  default = "s-2vcpu-2gb"
+}
+
+variable "node_count" {
+  type = number
+  default = 1
+}
+
+```
+Confirmado que a configuração do Cluster é a mesma da configuração do main.tf, uso o comando para importar o resource
 
 ```sh
-terraform import digitalocean_kubernetes_cluster.k8s_prod 757cf604-c9c4-420b-8638-9a8f9bac63fa
+terraform import digitalocean_kubernetes_cluster.k8s 757ab546-c9c4-420b-xxxxxxxxxx
 ```
-
+Para listar os resources
+```sh
+terraform state list
+```
 Se tudo der certo, o Terraform irá associar o cluster existente ao código Terraform.
 
 ## 3. Configurando Workspaces para Ambientes
